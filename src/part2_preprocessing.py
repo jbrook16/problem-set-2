@@ -17,10 +17,93 @@ PART 2: Pre-processing
 '''
 
 # import the necessary packages
-
-
+import pandas as pd
 
 # Your code here
+def run_preprocessing():
 
+    # Load data
+    pred_universe = pd.read_csv('data/pred_universe_raw.csv')
+    arrest_events = pd.read_csv('data/arrest_events_raw.csv')
+
+    # Merge (FULL OUTER JOIN)
+    df_arrests = pd.merge(
+        pred_universe,
+        arrest_events,
+        on='person_id',
+        how='outer',
+        suffixes=('_univ', '_event')
+    )
+
+    # Ensure datetime
+    df_arrests['arrest_date_univ'] = pd.to_datetime(df_arrests['arrest_date_univ'])
+    df_arrests['arrest_date_event'] = pd.to_datetime(df_arrests['arrest_date_event'])
+
+    # -------------------------------
+    # 🎯 TARGET VARIABLE (y)
+    # -------------------------------
+    df_arrests['y'] = 0
+
+    for i, row in df_arrests.iterrows():
+        if pd.isna(row['arrest_date_univ']):
+            continue
+
+        person = row['person_id']
+        current_date = row['arrest_date_univ']
+
+        # future window
+        future = df_arrests[
+            (df_arrests['person_id'] == person) &
+            (df_arrests['arrest_date_event'] > current_date) &
+            (df_arrests['arrest_date_event'] <= current_date + pd.Timedelta(days=365)) &
+            (df_arrests['charge_degree'] == 'felony')
+        ]
+
+        if len(future) > 0:
+            df_arrests.at[i, 'y'] = 1
+
+    print("Share rearrested for felony in next year:", df_arrests['y'].mean())
+
+    # -------------------------------
+    # 🔹 FEATURE 1: Current felony
+    # -------------------------------
+    df_arrests['current_charge_felony'] = (
+        df_arrests['charge_degree'] == 'felony'
+    ).astype(int)
+
+    print("Share of current charges that are felonies:",
+          df_arrests['current_charge_felony'].mean())
+
+    # -------------------------------
+    # 🔹 FEATURE 2: Past felony count
+    # -------------------------------
+    df_arrests['num_fel_arrests_last_year'] = 0
+
+    for i, row in df_arrests.iterrows():
+        if pd.isna(row['arrest_date_univ']):
+            continue
+
+        person = row['person_id']
+        current_date = row['arrest_date_univ']
+
+        past = df_arrests[
+            (df_arrests['person_id'] == person) &
+            (df_arrests['arrest_date_event'] < current_date) &
+            (df_arrests['arrest_date_event'] >= current_date - pd.Timedelta(days=365)) &
+            (df_arrests['charge_degree'] == 'felony')
+        ]
+
+        df_arrests.at[i, 'num_fel_arrests_last_year'] = len(past)
+
+    print("Average number of felony arrests last year:",
+          df_arrests['num_fel_arrests_last_year'].mean())
+
+    # Debug prints
+    print("\nMean of num_fel_arrests_last_year:", df_arrests['num_fel_arrests_last_year'].mean())
+    print("\ndf_arrests.head():")
+    print(df_arrests.head())
+
+    # Return for modeling
+    return df_arrests
 
 

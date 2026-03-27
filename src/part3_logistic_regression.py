@@ -20,6 +20,80 @@ from sklearn.model_selection import StratifiedKFold as KFold_strat
 from sklearn.linear_model import LogisticRegression as lr
 
 
-# Your code here
+def run_logistic_regression(df_arrests):
+    """
+    Run logistic regression with GridSearchCV to find optimal C hyperparameter.
+    
+    Args:
+        df_arrests: DataFrame from preprocessing with features and target
+        
+    Returns:
+        tuple: (df_arrests_test, gs_cv, X_test) for use in later parts
+    """
+    
+    # Train-test split
+    df_arrests_train, df_arrests_test = train_test_split(
+        df_arrests,
+        test_size=0.3,
+        shuffle=True,
+        stratify=df_arrests['y'],
+        random_state=42
+    )
+    
+    print(f"\n=== PART 3: Logistic Regression ===")
+    print(f"Training set size: {len(df_arrests_train)}")
+    print(f"Test set size: {len(df_arrests_test)}")
+    
+    # Define features
+    features = ['current_charge_felony', 'num_fel_arrests_last_year']
+    
+    # Prepare data
+    X_train = df_arrests_train[features]
+    y_train = df_arrests_train['y']
+    X_test = df_arrests_test[features]
+    y_test = df_arrests_test['y']
+    
+    # Parameter grid for C (C=1/lambda, so smaller C = more regularization)
+    param_grid = {
+        'C': [0.01, 0.1, 1.0]  # 0.01 = most regularization, 1.0 = least regularization
+    }
+    
+    # Initialize model
+    lr_model = lr(solver='lbfgs', max_iter=1000, random_state=42)
+    
+    # Initialize GridSearchCV with 5-fold cross-validation
+    gs_cv = GridSearchCV(
+        lr_model,
+        param_grid,
+        cv=KFold_strat(n_splits=5),
+        scoring='roc_auc'
+    )
+    
+    # Fit the model
+    gs_cv.fit(X_train, y_train)
+    
+    # Report optimal C
+    optimal_c = gs_cv.best_params_['C']
+    print(f"\nOptimal C value: {optimal_c}")
+    
+    # Determine regularization level
+    if optimal_c == 0.01:
+        regularization = "most (strongest regularization)"
+    elif optimal_c == 1.0:
+        regularization = "least (weakest regularization)"
+    else:
+        regularization = "middle (moderate regularization)"
+    
+    print(f"This C value has: {regularization}")
+    print(f"Best cross-validation score: {gs_cv.best_score_:.4f}")
+    
+    # Make predictions on test set
+    df_arrests_test = df_arrests_test.copy()
+    df_arrests_test['pred_lr'] = gs_cv.predict_proba(X_test)[:, 1]
+    
+    print(f"\nPredictions added to test set")
+    print(f"Test set shape: {df_arrests_test.shape}")
+    
+    return df_arrests_test, gs_cv, X_test
 
 
