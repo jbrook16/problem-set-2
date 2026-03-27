@@ -44,16 +44,16 @@ def run_logistic_regression(df_arrests):
     print(f"Training set size: {len(df_arrests_train)}")
     print(f"Test set size: {len(df_arrests_test)}")
     
-    # Define features
+    
     features = ['current_charge_felony', 'num_fel_arrests_last_year']
     
-    # Prepare data
+    
     X_train = df_arrests_train[features]
     y_train = df_arrests_train['y']
     X_test = df_arrests_test[features]
     y_test = df_arrests_test['y']
     
-    # Parameter grid for C (C=1/lambda, so smaller C = more regularization)
+    
     param_grid = {
         'C': [0.01, 0.1, 1.0]  # 0.01 = most regularization, 1.0 = least regularization
     }
@@ -61,7 +61,7 @@ def run_logistic_regression(df_arrests):
     # Initialize model
     lr_model = lr(solver='lbfgs', max_iter=1000, random_state=42)
     
-    # Initialize GridSearchCV with 5-fold cross-validation
+    
     gs_cv = GridSearchCV(
         lr_model,
         param_grid,
@@ -69,14 +69,14 @@ def run_logistic_regression(df_arrests):
         scoring='roc_auc'
     )
     
-    # Fit the model
+    
     gs_cv.fit(X_train, y_train)
     
-    # Report optimal C
+    
     optimal_c = gs_cv.best_params_['C']
     print(f"\nOptimal C value: {optimal_c}")
     
-    # Determine regularization level
+    
     if optimal_c == 0.01:
         regularization = "most (strongest regularization)"
     elif optimal_c == 1.0:
@@ -87,7 +87,7 @@ def run_logistic_regression(df_arrests):
     print(f"This C value has: {regularization}")
     print(f"Best cross-validation score: {gs_cv.best_score_:.4f}")
     
-    # Make predictions on test set
+    # Make predictions
     df_arrests_test = df_arrests_test.copy()
     df_arrests_test['pred_lr'] = gs_cv.predict_proba(X_test)[:, 1]
     

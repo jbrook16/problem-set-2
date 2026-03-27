@@ -31,7 +31,7 @@ def run_decision_tree(df_arrests, df_arrests_test_lr, X_test_lr):
         df_arrests_test: Test set with both LR and DT predictions
     """
     
-    # Train-test split (same as PART 3 for consistency)
+    # Train-test split 
     df_arrests_train, df_arrests_test = train_test_split(
         df_arrests,
         test_size=0.3,
@@ -44,7 +44,7 @@ def run_decision_tree(df_arrests, df_arrests_test_lr, X_test_lr):
     print(f"Training set size: {len(df_arrests_train)}")
     print(f"Test set size: {len(df_arrests_test)}")
     
-    # Define features (same as PART 3)
+    # Define features 
     features = ['current_charge_felony', 'num_fel_arrests_last_year']
     
     # Prepare data
@@ -53,16 +53,16 @@ def run_decision_tree(df_arrests, df_arrests_test_lr, X_test_lr):
     X_test = df_arrests_test[features]
     y_test = df_arrests_test['y']
     
-    # Parameter grid for max_depth
-    # Smaller max_depth = more regularization, larger max_depth = less regularization
+    
+    
     param_grid_dt = {
         'max_depth': [3, 5, 10]  # 3 = most regularization, 10 = least regularization
     }
     
-    # Initialize Decision Tree model
+    
     dt_model = DTC(random_state=42)
     
-    # Initialize GridSearchCV with 5-fold cross-validation
+    
     gs_cv_dt = GridSearchCV(
         dt_model,
         param_grid_dt,
@@ -70,14 +70,14 @@ def run_decision_tree(df_arrests, df_arrests_test_lr, X_test_lr):
         scoring='roc_auc'
     )
     
-    # Fit the model
+    
     gs_cv_dt.fit(X_train, y_train)
     
-    # Report optimal max_depth
+    # max_depth
     optimal_depth = gs_cv_dt.best_params_['max_depth']
     print(f"\nOptimal max_depth value: {optimal_depth}")
     
-    # Determine regularization level
+    
     if optimal_depth == 3:
         regularization = "most (strongest regularization, shallowest tree)"
     elif optimal_depth == 10:
@@ -88,7 +88,7 @@ def run_decision_tree(df_arrests, df_arrests_test_lr, X_test_lr):
     print(f"This max_depth has: {regularization}")
     print(f"Best cross-validation score: {gs_cv_dt.best_score_:.4f}")
     
-    # Use the test set from PART 3 and add DT predictions
+    
     df_arrests_test_combined = df_arrests_test_lr.copy()
     df_arrests_test_combined['pred_dt'] = gs_cv_dt.predict_proba(X_test_lr)[:, 1]
     

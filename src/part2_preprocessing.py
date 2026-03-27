@@ -16,17 +16,18 @@ PART 2: Pre-processing
 - Return `df_arrests` for use in main.py for PART 3; if you can't figure this out, save as a .csv in `data/` and read into PART 3 in main.py
 '''
 
+
 # import the necessary packages
 import pandas as pd
 
 # Your code here
 def run_preprocessing():
 
-    # Load data
+    # Load 
     pred_universe = pd.read_csv('data/pred_universe_raw.csv')
     arrest_events = pd.read_csv('data/arrest_events_raw.csv')
 
-    # Merge (FULL OUTER JOIN)
+    
     df_arrests = pd.merge(
         pred_universe,
         arrest_events,
@@ -35,13 +36,10 @@ def run_preprocessing():
         suffixes=('_univ', '_event')
     )
 
-    # Ensure datetime
     df_arrests['arrest_date_univ'] = pd.to_datetime(df_arrests['arrest_date_univ'])
     df_arrests['arrest_date_event'] = pd.to_datetime(df_arrests['arrest_date_event'])
 
-    # -------------------------------
-    # 🎯 TARGET VARIABLE (y)
-    # -------------------------------
+   
     df_arrests['y'] = 0
 
     for i, row in df_arrests.iterrows():
@@ -51,7 +49,7 @@ def run_preprocessing():
         person = row['person_id']
         current_date = row['arrest_date_univ']
 
-        # future window
+        
         future = df_arrests[
             (df_arrests['person_id'] == person) &
             (df_arrests['arrest_date_event'] > current_date) &
@@ -64,9 +62,7 @@ def run_preprocessing():
 
     print("Share rearrested for felony in next year:", df_arrests['y'].mean())
 
-    # -------------------------------
-    # 🔹 FEATURE 1: Current felony
-    # -------------------------------
+   
     df_arrests['current_charge_felony'] = (
         df_arrests['charge_degree'] == 'felony'
     ).astype(int)
@@ -74,9 +70,7 @@ def run_preprocessing():
     print("Share of current charges that are felonies:",
           df_arrests['current_charge_felony'].mean())
 
-    # -------------------------------
-    # 🔹 FEATURE 2: Past felony count
-    # -------------------------------
+    
     df_arrests['num_fel_arrests_last_year'] = 0
 
     for i, row in df_arrests.iterrows():
@@ -98,12 +92,11 @@ def run_preprocessing():
     print("Average number of felony arrests last year:",
           df_arrests['num_fel_arrests_last_year'].mean())
 
-    # Debug prints
     print("\nMean of num_fel_arrests_last_year:", df_arrests['num_fel_arrests_last_year'].mean())
     print("\ndf_arrests.head():")
     print(df_arrests.head())
 
-    # Return for modeling
+    
     return df_arrests
 
 

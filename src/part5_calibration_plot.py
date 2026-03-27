@@ -64,7 +64,7 @@ def run_calibration_analysis():
     Perform calibration analysis for LR and DT models.
     """
     
-    print(f"\n=== PART 5: Calibration Analysis ===")
+    print(f"\n PART 5: Calibration Analysis ")
     
     # Read prediction data from PART 4
     df_test = pd.read_csv('data/part4_test_predictions.csv')
@@ -87,15 +87,15 @@ def run_calibration_analysis():
     calibration_plot(y_true, pred_dt, n_bins=5, title="Decision Tree - Calibration Plot",
                      filepath='data/calibration_plot_dt.png')
     
-    # Assess calibration (closer to diagonal = better calibrated)
+    
     bin_means_lr, prob_true_lr = calibration_curve(y_true, pred_lr, n_bins=5)
     bin_means_dt, prob_true_dt = calibration_curve(y_true, pred_dt, n_bins=5)
     
-    # Calculate calibration error (mean squared error from perfect calibration)
+    
     cal_error_lr = np.mean((prob_true_lr - bin_means_lr) ** 2)
     cal_error_dt = np.mean((prob_true_dt - bin_means_dt) ** 2)
     
-    print(f"\n--- Calibration Assessment ---")
+    print(f"\n Calibration Assessment ")
     print(f"LR Calibration MSE: {cal_error_lr:.6f}")
     print(f"DT Calibration MSE: {cal_error_dt:.6f}")
     
@@ -107,8 +107,8 @@ def run_calibration_analysis():
     print(f"\nWhich model is more calibrated? {better_calibrated}")
     print(f"  (Lower calibration error = better calibrated)")
     
-    # ==================== EXTRA CREDIT ====================
-    print(f"\n=== EXTRA CREDIT ===")
+    
+    print(f"\n EXTRA CREDIT ")
     
     # Top 50 predictions
     top_50_idx_lr = np.argsort(pred_lr)[-50:]
@@ -127,7 +127,7 @@ def run_calibration_analysis():
     print(f"  Logistic Regression: {ppv_lr:.4f}")
     print(f"  Decision Tree: {ppv_dt:.4f}")
     
-    # AUC scores
+    
     auc_lr = roc_auc_score(y_true, pred_lr)
     auc_dt = roc_auc_score(y_true, pred_dt)
     
@@ -135,7 +135,7 @@ def run_calibration_analysis():
     print(f"  Logistic Regression: {auc_lr:.4f}")
     print(f"  Decision Tree: {auc_dt:.4f}")
     
-    # Check agreement
+    
     ppv_winner = "Logistic Regression" if ppv_lr > ppv_dt else "Decision Tree"
     auc_winner = "Logistic Regression" if auc_lr > auc_dt else "Decision Tree"
     
