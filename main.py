@@ -27,7 +27,7 @@ def main():
     df_arrests_test_combined, dt_model = decision_tree.run_decision_tree(df_arrests, df_arrests_test_lr, X_test_lr)
 
     # PART 5: Call functions/instanciate objects from calibration_plot
-   
+    df_results = calibration_plot.run_calibration_analysis()
 
 
 if __name__ == "__main__":
